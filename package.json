@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepare": "run-s client:install server:install",
     "dev": "run-s redis watch server client",
     "server": "cd server && ttab -t 'server' yarn dev",
     "redis": "cd server && ttab -t 'redis' yarn start:redis",
     "watch": "cd server && ttab -t 'tsc watch' yarn watch",
-    "client": "cd lireddit-client && ttab -t 'client' yarn dev"
+    "client": "cd lireddit-client && ttab -t 'client' yarn dev",
+    "client:install": "cd lireddit-client && ttab -t 'client:install' yarn",
+    "server:install": "cd server && ttab -t 'server:install' yarn"
   },
   "keywords": [],
   "author": "",
