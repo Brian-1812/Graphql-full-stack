@@ -15,7 +15,7 @@ import cors from "cors";
 import { PostResolver } from "./resolvers/Post";
 import mikroConfig from "./mikro-orm.config";
 import { UserResolver } from "./resolvers/User";
-import { __prod__ } from "./constants";
+import { COOKIE_NAME, __prod__ } from "./constants";
 
 const main = async () => {
   //Orm db connect
@@ -42,7 +42,7 @@ const main = async () => {
   // Session with Redis
   app.use(
     session({
-      name: "Fucking-cookie-here",
+      name: COOKIE_NAME,
       store: new RedisStore({ client: redisClient, disableTouch: true }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
