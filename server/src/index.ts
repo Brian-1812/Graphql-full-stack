@@ -8,7 +8,7 @@ import {
 } from "apollo-server-core";
 import { buildSchema } from "type-graphql";
 import { MikroORM } from "@mikro-orm/core";
-import { createClient } from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -28,8 +28,7 @@ const main = async () => {
 
   // Redis client connect
   const RedisStore = connectRedis(session);
-  const redisClient = createClient({ legacyMode: true });
-  redisClient.connect().catch(console.error);
+  const redis = new Redis();
 
   // configuring cors
   var corsOptions = {
@@ -43,7 +42,7 @@ const main = async () => {
   app.use(
     session({
       name: COOKIE_NAME,
-      store: new RedisStore({ client: redisClient, disableTouch: true }),
+      store: new RedisStore({ client: redis, disableTouch: true }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         secure: false,
@@ -64,7 +63,7 @@ const main = async () => {
       validate: false,
     }),
     context: ({ req, res }) => {
-      return { em: orm.em, req, res };
+      return { em: orm.em, req, res, redis };
     },
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),

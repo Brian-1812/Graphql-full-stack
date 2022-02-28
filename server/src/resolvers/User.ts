@@ -1,7 +1,7 @@
 import {
   Arg,
-  Ctx,
   Field,
+  Ctx,
   Mutation,
   ObjectType,
   Query,
@@ -10,9 +10,11 @@ import {
 import argon2 from "argon2";
 import { MyContext } from "../types";
 import { User } from "../entities/User";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
+import { v4 } from "uuid";
+import { sendEmail } from "../utils/sendEmail";
 
 @ObjectType()
 class FieldError {
@@ -127,5 +129,29 @@ export class UserResolver {
         resolve(true);
       });
     });
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    try {
+      const user = await em.findOne(User, { email });
+      if (!user) {
+        return false;
+      }
+
+      const token = v4();
+      await redis.set(FORGOT_PASSWORD_PREFIX + token, user.id);
+      await sendEmail(
+        email,
+        `<a href="http://localhost:3000/reset-password/${token}">Reset your password</a>`
+      );
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
   }
 }
