@@ -6,6 +6,7 @@ import {
   MeDocument,
   MeQuery,
   RegisterMutation,
+  ResetPasswordMutation,
 } from "../generated/graphql";
 import { udpateQuery } from "./udpateQuery";
 
@@ -57,6 +58,22 @@ export const createUrqlClient = (_ssrExchange: any, ctx: any) => ({
               { query: MeDocument },
               _result,
               () => ({ me: null })
+            );
+          },
+          resetPassword: (_result, args, cache, info) => {
+            udpateQuery<ResetPasswordMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              _result,
+              (result, query) => {
+                if (result.resetPassword.errors) {
+                  return query;
+                } else {
+                  return {
+                    me: result.resetPassword.user,
+                  };
+                }
+              }
             );
           },
         },
