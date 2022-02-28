@@ -1,10 +1,7 @@
 mutation Login($username: String!, $password: String!) {
   login(options: { username: $username, password: $password }) {
     user {
-      id
-      username
-      updatedAt
-      createdAt
+      ...RegularUser
     }
     errors {
       msg
