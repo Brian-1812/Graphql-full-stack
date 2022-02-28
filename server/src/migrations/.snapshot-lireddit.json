@@ -42,6 +42,16 @@
           "length": 128,
           "mappedType": "string"
         },
+        "email": {
+          "name": "email",
+          "type": "varchar(128)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 128,
+          "mappedType": "string"
+        },
         "password": {
           "name": "password",
           "type": "text",
@@ -60,6 +70,15 @@
           ],
           "composite": false,
           "keyName": "user_username_unique",
+          "primary": false,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "email"
+          ],
+          "composite": false,
+          "keyName": "user_email_unique",
           "primary": false,
           "unique": true
         },

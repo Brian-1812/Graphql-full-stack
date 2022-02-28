@@ -2,7 +2,6 @@ import {
   Arg,
   Ctx,
   Field,
-  InputType,
   Mutation,
   ObjectType,
   Query,
@@ -12,15 +11,8 @@ import argon2 from "argon2";
 import { MyContext } from "../types";
 import { User } from "../entities/User";
 import { COOKIE_NAME } from "../constants";
-
-@InputType()
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-
-  @Field()
-  password: string;
-}
+import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import { validateRegister } from "../utils/validateRegister";
 
 @ObjectType()
 class FieldError {
@@ -56,39 +48,26 @@ export class UserResolver {
     @Ctx() { em }: MyContext
   ): Promise<UserResponse> {
     try {
-      if (options.username.length <= 3) {
-        return {
-          errors: [
-            {
-              field: "username",
-              msg: "Username must be at least 4 characters",
-            },
-          ],
-        };
-      }
-
-      if (options.password.length <= 3) {
-        return {
-          errors: [
-            {
-              field: "password",
-              msg: "Password must be at least 4 characters",
-            },
-          ],
-        };
+      const errors = validateRegister(options);
+      if (errors) {
+        return { errors };
       }
 
       const hash = await argon2.hash(options.password);
       const user = em.create(User, {
         username: options.username,
         password: hash,
+        email: options.email,
       });
       await em.persistAndFlush(user);
       return { user };
     } catch (err) {
       if (err.code === "ER_DUP_ENTRY") {
         return {
-          errors: [{ field: "username", msg: "Username is already taken" }],
+          errors: [
+            { field: "username", msg: "Username or email is already taken" },
+            { field: "email", msg: "Username or email is already taken" },
+          ],
         };
       }
       return {
@@ -99,17 +78,29 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("options") options: UsernamePasswordInput,
+    @Arg("emailOrUsername") emailOrUsername: string,
+    @Arg("password") password: string,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     try {
-      const user = await em.findOne(User, { username: options.username });
+      const user = await em.findOne(
+        User,
+        emailOrUsername.includes("@")
+          ? { email: emailOrUsername }
+          : { username: emailOrUsername }
+      );
+      console.log(user, "!User:", !user);
       if (!user) {
         return {
-          errors: [{ msg: "Username doesn't exist", field: "username" }],
+          errors: [
+            {
+              msg: "This username or email doesn't exist",
+              field: "emailOrUsername",
+            },
+          ],
         };
       }
-      if (await argon2.verify(user.password, options.password)) {
+      if (await argon2.verify(user.password, password)) {
         req.session.userId = user.id;
         return { user };
       }

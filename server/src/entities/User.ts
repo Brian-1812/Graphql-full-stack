@@ -20,6 +20,10 @@ export class User {
   @Property({ length: 128, type: "varchar", unique: true })
   username!: string;
 
+  @Field()
+  @Property({ length: 128, type: "varchar", unique: true })
+  email!: string;
+
   // @Field()
   @Property({ type: "text" })
   password!: string;
