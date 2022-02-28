@@ -154,4 +154,48 @@ export class UserResolver {
       return false;
     }
   }
+
+  @Mutation(() => UserResponse)
+  async resetPassword(
+    @Arg("token") token: string,
+    @Arg("newPassword") newPassword: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const id = await redis.get(FORGOT_PASSWORD_PREFIX + token);
+    if (!id) {
+      return {
+        errors: [
+          {
+            field: "token",
+            msg: "Token expired",
+          },
+        ],
+      };
+    }
+
+    const user = await em.findOne(User, { id: Number(id) });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "token",
+            msg: "This user no longer exist",
+          },
+        ],
+      };
+    }
+    if (newPassword.length < 4)
+      return {
+        errors: [
+          {
+            field: "newPassword",
+            msg: "Password must be at least 4 characters!",
+          },
+        ],
+      };
+    user.password = await argon2.hash(newPassword);
+    await em.persistAndFlush(user);
+    // await redis.del(FORGOT_PASSWORD_PREFIX + token)
+    return { user };
+  }
 }
