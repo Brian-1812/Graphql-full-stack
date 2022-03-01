@@ -38,7 +38,6 @@ class UserResponse {
 export class UserResolver {
   @Query(() => User, { nullable: true })
   async me(@Ctx() { em, req }: MyContext) {
-    console.log(req.session);
     if (!req.session.userId) return null;
     const user = await em.findOne(User, { id: req.session.userId });
     return user;
@@ -91,7 +90,7 @@ export class UserResolver {
           ? { email: emailOrUsername }
           : { username: emailOrUsername }
       );
-      console.log(user, "!User:", !user);
+
       if (!user) {
         return {
           errors: [
@@ -137,21 +136,25 @@ export class UserResolver {
     @Ctx() { em, redis }: MyContext
   ) {
     try {
+      console.log("Email: ", email);
       const user = await em.findOne(User, { email });
       if (!user) {
-        return false;
+        return true;
       }
 
       const token = v4();
+      console.log("setting redis");
       await redis.set(FORGOT_PASSWORD_PREFIX + token, user.id);
+      console.log("sending email");
       await sendEmail(
         email,
         `<a href="http://localhost:3000/reset-password/${token}">Reset your password</a>`
       );
+      console.log("Returning");
       return true;
     } catch (err) {
       console.log(err);
-      return false;
+      return true;
     }
   }
 

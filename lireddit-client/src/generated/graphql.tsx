@@ -118,6 +118,13 @@ export type RegularUserFragment = { __typename?: 'User', id: number, username: s
 
 export type UserResponseFrFragment = { __typename?: 'UserResponse', user?: { __typename?: 'User', id: number, username: string } | null, errors?: Array<{ __typename?: 'FieldError', field: string, msg: string }> | null };
 
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type ForgotPasswordMutation = { __typename?: 'Mutation', forgotPassword: boolean };
+
 export type LoginMutationVariables = Exact<{
   emailOrUsername: Scalars['String'];
   password: Scalars['String'];
@@ -179,6 +186,15 @@ export const UserResponseFrFragmentDoc = gql`
 }
     ${RegularUserFragmentDoc}
 ${RegularErrorFragmentDoc}`;
+export const ForgotPasswordDocument = gql`
+    mutation ForgotPassword($email: String!) {
+  forgotPassword(email: $email)
+}
+    `;
+
+export function useForgotPasswordMutation() {
+  return Urql.useMutation<ForgotPasswordMutation, ForgotPasswordMutationVariables>(ForgotPasswordDocument);
+};
 export const LoginDocument = gql`
     mutation Login($emailOrUsername: String!, $password: String!) {
   login(emailOrUsername: $emailOrUsername, password: $password) {

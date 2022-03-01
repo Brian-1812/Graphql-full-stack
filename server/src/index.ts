@@ -21,7 +21,6 @@ const main = async () => {
   //Orm db connect
   const orm = await MikroORM.init(mikroConfig);
   await orm.getMigrator().up();
-
   // Express server
   const app = express();
   const httpServer = http.createServer(app);
