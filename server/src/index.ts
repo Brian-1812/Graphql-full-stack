@@ -7,20 +7,30 @@ import {
   ApolloServerPluginLandingPageGraphQLPlayground,
 } from "apollo-server-core";
 import { buildSchema } from "type-graphql";
-import { MikroORM } from "@mikro-orm/core";
+import { createConnection } from "typeorm";
 import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
 import { PostResolver } from "./resolvers/Post";
-import mikroConfig from "./mikro-orm.config";
 import { UserResolver } from "./resolvers/User";
 import { COOKIE_NAME, __prod__ } from "./constants";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 
 const main = async () => {
   //Orm db connect
-  const orm = await MikroORM.init(mikroConfig);
-  await orm.getMigrator().up();
+  await createConnection({
+    type: "mysql",
+    host: "localhost",
+    port: 3306,
+    username: "root",
+    password: "root12345",
+    database: "lireddit2",
+    entities: [Post, User],
+    synchronize: true,
+    logging: true,
+  });
   // Express server
   const app = express();
   const httpServer = http.createServer(app);
@@ -62,7 +72,7 @@ const main = async () => {
       validate: false,
     }),
     context: ({ req, res }) => {
-      return { em: orm.em, req, res, redis };
+      return { req, res, redis };
     },
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
