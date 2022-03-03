@@ -15,10 +15,14 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   textarea?: boolean;
 };
 
-const InputField: React.FC<InputFieldProps> = ({ size: _, ...props }) => {
+const InputField: React.FC<InputFieldProps> = ({
+  size: _,
+  textarea,
+  ...props
+}) => {
   const [field, { error }] = useField(props);
   let InputOrTextarea: any = Input;
-  if (props.textarea) InputOrTextarea = Textarea;
+  if (textarea) InputOrTextarea = Textarea;
   return (
     <FormControl isInvalid={!!error}>
       <FormLabel htmlFor={field.name}>{props.label}</FormLabel>
